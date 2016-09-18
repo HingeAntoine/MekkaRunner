@@ -10,11 +10,19 @@ legspr={10,{1,3}}
 forwardlegspr={13,{2,2}}
 backwardlegspr={11,{2,3}}
 
+--obstacles
+stone_pers={67,{2,2}}
+hound={64,{3,2}}
+nothing={0,{1,1}}
+
 xmac=40
 ymac=100
 
 bckgrnd_tiles={128,129,130,131}
 bckgrnd={}
+
+obst_tiles={nothing,stone_pers,hound}
+obstacles={}
 
 --vxmac=0
 vymac=0
@@ -28,6 +36,12 @@ frame_count=0
 function init_bckgrnd()
  while #bckgrnd<17 do
   add_cell_bckgrnd()
+ end
+end
+
+function init_obst()
+ while #obstacles<17 do
+  add(obstacles,nothing)
  end
 end
 
@@ -52,6 +66,32 @@ function add_cell_bckgrnd()
  add(bckgrnd,cell)
 end
 
+function add_obst()
+ local id=flr(rnd(#obst_tiles))+1
+ local cell=obst_tiles[id]
+ add(obstacles,cell)
+ for i=2,cell[2][1] do
+  add(obstacles,nothing)
+ end
+end
+
+function add_obst_map(obs,x)
+ for i=1,obs[2][1] do
+  for j=1,obs[2][2] do
+   mset(x+i-1,j,obs[1]+(i-1)+16*(j-1))
+  end
+ end
+end
+
+function obstacle_update()
+ add_obst()
+ del(obstacles, obstacles[1])
+
+ for i=1,17 do
+  add_obst_map(obstacles[i],i)
+ end
+end
+
 function bckgrnd_update()
  add_cell_bckgrnd()
  del(bckgrnd, bckgrnd[1])
@@ -69,9 +109,10 @@ function draw_background()
  
  if xstart==0 then
   bckgrnd_update()
+  obstacle_update()
  end
 
- map(0,3, xstart,120, 17,1)
+ map(0,1, xstart,104, 17,3)
 end
 
 function draw_part(part,xc, yc,bk)
@@ -181,6 +222,7 @@ end
 --*******************
 function _init()
  init_bckgrnd()
+ init_obst()
 end
 
 function _draw()
