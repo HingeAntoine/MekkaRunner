@@ -42,6 +42,7 @@ function jump_update()
   ymac=100
   vymac=0
   is_jumping=false
+  is_landing=true
  end
 end
 
@@ -89,6 +90,17 @@ function draw_part(part,xc, yc,bk)
  pal()
 end
 
+function draw_body(x,y)
+  palt(0,false)
+  palt(11,true)
+  draw_part(bodyspr,x+1,y-17)
+  palt(0,true)
+  palt(11,false)
+  draw_part(frarmspr,x,y-8)
+  draw_part(machinespr,x-1,y-8)
+  draw_part(handspr,x+4,y-6)
+end
+
 function draw_machine(xrel,yrel)
 
  local ybody={yrel-17,yrel-16}
@@ -99,6 +111,45 @@ function draw_machine(xrel,yrel)
  local index = flr(frame_count/6)%2+1
  local rid= flr(frame_count/10)%4
  
+ if is_launching then
+  launch_count=max(launch_count,0)+1
+  
+  draw_part(legspr,xrel+6,yrel+1,true)
+  draw_body(xrel,yrel+3)
+  draw_part(legspr,xrel+1,yrel+1)
+ 
+  if launch_count>6 then
+   is_launching=false
+   is_jumping=true
+   launch_count=0
+  end
+  
+  return
+ end
+ 
+ if is_jumping then
+  draw_part(backwardlegspr,xrel-3,yrel+1,true)
+  draw_body(xrel,yrel)
+  draw_part(forwardlegspr,xrel+1,yrel+1)
+  return
+ end
+ 
+ if is_landing then
+  landing_count=max(landing_count,0)+1
+ 
+  draw_part(legspr,xrel+6,yrel+1,true)
+  draw_body(xrel,yrel+3)
+  draw_part(legspr,xrel+1,yrel+1)
+  
+  if landing_count>6 then
+   frame_count=10
+   is_landing=false
+   landing_count=0
+  end
+
+  return
+ end
+ 
  if rid==0 then
   draw_part(backwardlegspr,xrel-3,yrel+1,true)
  elseif rid==1 or rid==3 then
@@ -107,18 +158,16 @@ function draw_machine(xrel,yrel)
   draw_part(forwardlegspr,xrel+6,yrel+1,true)
  end
  
- --draw_part(frarmspr,xrel+4,yrel-6)
  palt(0,false)
  palt(11,true)
  draw_part(bodyspr,xrel+1,ybody[index])
  palt(0,true)
  palt(11,false)
- 
  draw_part(frarmspr,xrel,yfrarm[index])
- 
  draw_part(machinespr,xrel-1,ymachine[index])
  draw_part(handspr,xrel+4,yhand[index])
- --draw_part(legspr,xrel+1,yrel-1)
+
+
  if rid==0 then
   draw_part(forwardlegspr,xrel+1,yrel+1)
  elseif rid==1 or rid==3 then
@@ -154,9 +203,8 @@ function _update()
   xmac+=1
  end
  
- if btnp(2) and not is_jumping then
-  --ymac-=1
-  is_jumping=true
+ if btnp(2) and not is_jumping and not is_launching then
+  is_launching=true
   vymac=-2.5
  end
  
