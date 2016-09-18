@@ -67,11 +67,13 @@ function add_cell_bckgrnd()
 end
 
 function add_obst()
- local id=flr(rnd(#obst_tiles))+1
- local cell=obst_tiles[id]
- add(obstacles,cell)
- for i=2,cell[2][1] do
-  add(obstacles,nothing)
+ if #obstacles<18 then
+  local id=flr(rnd(#obst_tiles))+1
+  local cell=obst_tiles[id]
+  add(obstacles,cell)
+  for i=1,cell[2][1]+4 do
+   add(obstacles,nothing)
+  end
  end
 end
 
@@ -88,6 +90,11 @@ function obstacle_update()
  del(obstacles, obstacles[1])
 
  for i=1,17 do
+  mset(i-1,1,0)
+  mset(i-1,2,0)
+ end 
+
+ for i=17,1,-1 do
   add_obst_map(obstacles[i],i)
  end
 end
@@ -103,7 +110,7 @@ end
 
 --*******************
 function draw_background()
- local v=1/1
+ local v=1/2
  local xstart=flr(frame_count/v)%8*(-1)
  --local xcell =flr(flr(frame_count/v)/8)
  
