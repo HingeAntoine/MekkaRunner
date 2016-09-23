@@ -18,6 +18,8 @@ nothing={0,{1,1}}
 xmac=40
 ymac=100
 
+bck_len=20
+
 bckgrnd_tiles={128,129,130,131}
 bckgrnd={}
 
@@ -34,13 +36,13 @@ frame_count=0
 
 --*******************
 function init_bckgrnd()
- while #bckgrnd<17 do
+ while #bckgrnd<bck_len do
   add_cell_bckgrnd()
  end
 end
 
 function init_obst()
- while #obstacles<17 do
+ while #obstacles<bck_len do
   add(obstacles,nothing)
  end
 end
@@ -67,7 +69,7 @@ function add_cell_bckgrnd()
 end
 
 function add_obst()
- if #obstacles<18 then
+ if #obstacles<bck_len+1 then
   local id=flr(rnd(#obst_tiles))+1
   local cell=obst_tiles[id]
   add(obstacles,cell)
@@ -89,12 +91,12 @@ function obstacle_update()
  add_obst()
  del(obstacles, obstacles[1])
 
- for i=1,17 do
+ for i=1,bck_len do
   mset(i-1,1,0)
   mset(i-1,2,0)
  end 
 
- for i=17,1,-1 do
+ for i=bck_len,1,-1 do
   add_obst_map(obstacles[i],i)
  end
 end
@@ -103,7 +105,7 @@ function bckgrnd_update()
  add_cell_bckgrnd()
  del(bckgrnd, bckgrnd[1])
 
- for i=1,17 do
+ for i=1,bck_len do
   mset(i-1,3,bckgrnd[i])
  end
 end
@@ -119,7 +121,7 @@ function draw_background()
   obstacle_update()
  end
 
- map(0,1, xstart,104, 17,3)
+ map(3,1, xstart,104, 17,3)
 end
 
 function draw_part(part,xc, yc,bk)
