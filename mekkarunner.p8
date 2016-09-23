@@ -47,7 +47,7 @@ end
 
 --*******************
 function jump_update()
- local ay_jump=0.125
+ local ay_jump=0.35
  
  ymac += vymac
  vymac += ay_jump
@@ -71,7 +71,7 @@ function add_obst()
   local id=flr(rnd(#obst_tiles))+1
   local cell=obst_tiles[id]
   add(obstacles,cell)
-  for i=1,cell[2][1]+4 do
+  for i=1,cell[2][1]+5 do
    add(obstacles,nothing)
   end
  end
@@ -166,7 +166,7 @@ function draw_machine(xrel,yrel)
   draw_body(xrel,yrel+3)
   draw_part(legspr,xrel+1,yrel+1)
  
-  if launch_count>6 then
+  if launch_count>4 then
    is_launching=false
    is_jumping=true
    launch_count=0
@@ -189,8 +189,8 @@ function draw_machine(xrel,yrel)
   draw_body(xrel,yrel+3)
   draw_part(legspr,xrel+1,yrel+1)
   
-  if landing_count>6 then
-   frame_count=10
+  if landing_count>5 then
+   frame_count=14
    is_landing=false
    landing_count=0
   end
@@ -228,19 +228,34 @@ end
 
 --*******************
 function _init()
+ cls()
  init_bckgrnd()
  init_obst()
 end
 
+init_screen=true
+
 function _draw()
+ if init_screen then
+  print("mekka nikki crazy runner!",20,20)
+  print("press — or Ž to start",20,40)
+  return
+ end
+
+
  rectfill(0,0,127,127,11)
- 
  draw_background()
- 
  draw_machine(xmac,ymac)
 end
 
 function _update()
+ 
+ if init_screen then
+  if btnp(5) or btnp(4) then
+   init_screen=false
+  end
+  return
+ end
  
  frame_count+=1
  
@@ -254,7 +269,7 @@ function _update()
  
  if btnp(2) and not is_jumping and not is_launching then
   is_launching=true
-  vymac=-2.5
+  vymac=-4.3
  end
  
  if btn(3) then
