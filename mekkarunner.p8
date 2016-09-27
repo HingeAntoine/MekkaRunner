@@ -34,6 +34,32 @@ is_jumping=false
 one_frame=1/30
 frame_count=0
 
+--******** hitbox mgmt ********
+hitbox={}
+hitbox.__index=hitbox
+
+function hitbox.create(x1,y1,x2,y2)
+ local htbx={}
+ setmetatable(htbx,hitbox)
+ htbx.x1=x1
+ htbx.x2=x2
+ htbx.y1=y1
+ htbx.y2=y2
+ return htbx
+end
+
+function hitbox:draw()
+ rect(self.x1,self.y1,self.x2,self.y2,8)
+end
+
+function hitbox:collide(htbx)
+ local res=self.x2 < htbx.x1
+  or self.x1 > htbx.x2
+  or self.y2 < htbx.y1
+  or self.y1 > htbx.y2
+ return not res
+end
+
 --*******************
 function init_bckgrnd()
  while #bckgrnd<bck_len do
@@ -260,7 +286,9 @@ function draw_coll()
  local xr=xmac-8
  local yr=120-yc*8
 
- rect(xr,yr,xr+24,yr+8,8)
+ local box=hitbox.create(xr,yr,xr+24,yr+8)
+ box:draw()
+
 end
 
 --*******************
