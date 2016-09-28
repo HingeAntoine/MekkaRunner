@@ -250,6 +250,7 @@ function bckgrnd_update()
 end
 
 function check_collision()
+ is_coll=false
 end
 
 --*******************
@@ -324,7 +325,6 @@ function update_legs()
 end
 
 function update_machine()
- 
  local index=flr(frame_count/6)%2
  
  if index==0 then
@@ -340,7 +340,6 @@ function update_machine()
     obj:movev(-1)
    end)
  end
-
 end
 
 function update_jump()
@@ -360,6 +359,7 @@ function update_jump()
   elseif launch_count>4 then
    is_launching=false
    is_jumping=true
+   landing_count=0
    launch_count=0
   end
   
@@ -389,10 +389,6 @@ function update_jump()
 
   return
  end
-
-end
-
-function draw_coll()
 end
 
 --*******************
@@ -425,8 +421,6 @@ function _draw()
  end
 
  rectfill(0,0,127,127,11)
- 
- draw_coll()
  draw_background()
  draw_machine()
  
@@ -483,11 +477,11 @@ function _update()
   update_legs()
  end
  
- --[[check_collision()
+ check_collision()
  if is_coll then
   end_screen=true
   return
- end]]
+ end
  
  if btnp(2) and not is_jumping and not is_launching then
   is_launching=true
