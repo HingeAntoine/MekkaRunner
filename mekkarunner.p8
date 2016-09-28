@@ -2,12 +2,9 @@ pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
 --*******************
-legspr={10,{1,3}}
-forwardlegspr={13,{2,2}}
-backwardlegspr={11,{2,3}}
-
 xmac=20
 ymac=100
+
 body={}
 
 bck_len=20
@@ -112,10 +109,50 @@ function init_bckgrnd()
 end
 
 function init_obst()
- local r=real_obst.create(45,104,obst_tiles[2])
- local r2=real_obst.create(75,104,obst_tiles[3])
+ local r=real_obst.create(145,104,obst_tiles[2])
+ local r2=real_obst.create(275,104,obst_tiles[3])
  add(obstacles,r)
  add(obstacles,r2)
+end
+
+function init_parts()
+ --body
+ local bodyh=hitbox.create(
+  0,0,8,17)
+ bodyo=obstacle.create(
+  5,{2,3},{bodyh})
+  
+ --parts
+ local machineh=hitbox.create(
+  0,3,15,13)
+ machineo=obstacle.create(
+  8,{2,2},{machineh})
+  
+ armo=obstacle.create(
+  7,{1,1},{})
+  
+ hando=obstacle.create(
+  23,{1,1},{})
+  
+ --legs
+ local legh=hitbox.create(
+  0,0,7,18)
+ lego=obstacle.create(
+  10,{1,3},{legh})
+  
+ local legfor1=hitbox.create(
+  0,0,11,7)
+ local legfor2=hitbox.create(
+  8,8,15,15)
+ forwardlego=obstacle.create(
+  13,{2,2},{legfor1,legfor2})
+  
+ local legbac1=hitbox.create(
+  10,0,15,10)
+ local legbac2=hitbox.create(
+  4,8,8,16)
+ backwardlego=obstacle.create(
+  11,{2,3},{legbac1,legbac2}) 
 end
 
 function create_obstacles()
@@ -133,26 +170,12 @@ function create_obstacles()
  obst_tiles={nothing,lion,stone_pers}
 end
 
-function create_body()
- local x=xmac
- local y=ymac
- 
- local bodyh=hitbox.create(
-  0,0,8,17)
- local bodyo=obstacle.create(
-  5,{2,3},{bodyh})
+function create_body(x,y) 
+
  local bodypart=real_obst.create(
   x+1,y-17,bodyo)
  body.body=bodypart
 
- local machineh=hitbox.create(
-  0,3,15,13)
- local machineo=obstacle.create(
-  8,{2,2},{machineh})
- local armo=obstacle.create(
-  7,{1,1},{})
- local hando=obstacle.create(
-  23,{1,1},{})
  local machine=real_obst.create(
   x-1,y-8,machineo)
  local arm   =real_obst.create(
@@ -160,32 +183,20 @@ function create_body()
  local hand   =real_obst.create(
   x+4,y-6,hando)
  body.mac ={arm,machine,hand}
- 
- local legh=hitbox.create(
-  0,0,7,18)
- lego=obstacle.create(
-  10,{1,3},{legh})
- local legfor1=hitbox.create(
-  0,0,11,7)
- local legfor2=hitbox.create(
-  8,8,15,15)
- forwardlego=obstacle.create(
-  13,{2,2},{legfor1,legfor2})
- local legbac1=hitbox.create(
-  10,0,15,10)
- local legbac2=hitbox.create(
-  4,8,8,16)
- backwardlego=obstacle.create(
-  11,{2,3},{legbac1,legbac2})
- 
+end
+
+function create_legs(x,y)
  local legbck=real_obst.create(
   x+6,y+1,lego)
  local legfr=real_obst.create(
   x+1,y+1,lego)
  body.backleg=legbck
  body.frontleg=legfr
- 
- 
+end
+
+function create_machine()
+ create_body(xmac,ymac)
+ create_legs(xmac,ymac)
 end
 
 --*******************
@@ -293,45 +304,6 @@ end
 function update_legs()
  local index= flr(frame_count/10)%4
 
- --[[if is_launching then
-  launch_count=max(launch_count,0)+1
-  
-  draw_part(legspr,xrel+6,yrel+1,true)
-  draw_body(xrel,yrel+3)
-  draw_part(legspr,xrel+1,yrel+1)
- 
-  if launch_count>4 then
-   is_launching=false
-   is_jumping=true
-   launch_count=0
-  end
-  
-  return
- end
- 
- if is_jumping then
-  draw_part(backwardlegspr,xrel-3,yrel+1,true)
-  draw_body(xrel,yrel)
-  draw_part(forwardlegspr,xrel+1,yrel+1)
-  return
- end
- 
- if is_landing then
-  landing_count=max(landing_count,0)+1
- 
-  draw_part(legspr,xrel+6,yrel+1,true)
-  draw_body(xrel,yrel+3)
-  draw_part(legspr,xrel+1,yrel+1)
-  
-  if landing_count>5 then
-   frame_count=14
-   is_landing=false
-   landing_count=0
-  end
-
-  return
- end]]
-
  if index==0 then
   body.backleg=real_obst.create(
    xmac-3,ymac+1,backwardlego)
@@ -371,14 +343,64 @@ function update_machine()
 
 end
 
+function update_jump()
+ function jump_config()
+  create_body(xmac,ymac+2)
+  body.backleg=real_obst.create(
+   xmac+6,ymac+1,lego)
+  body.frontleg=real_obst.create(
+   xmac+1,ymac+1,lego)
+ end  
+
+ if is_launching then
+  launch_count=max(launch_count,0)+1
+  
+  if launch_count==1 then
+   jump_config()
+  elseif launch_count>4 then
+   is_launching=false
+   is_jumping=true
+   launch_count=0
+  end
+  
+  return
+ end
+ 
+ if is_jumping then
+  create_body(xmac,ymac)
+  body.backleg=real_obst.create(
+    xmac-3,ymac+1,backwardlego)
+  body.frontleg=real_obst.create(
+    xmac+1,ymac+1,forwardlego)
+  return
+ end
+ 
+ if is_landing then
+  landing_count=max(landing_count,0)+1
+ 
+  if landing_count==1 then
+   jump_config()
+  elseif landing_count>5 then
+   frame_count=14
+   is_landing=false
+   landing_count=0
+   create_body(xmac,ymac)
+  end
+
+  return
+ end
+
+end
+
 function draw_coll()
 end
 
 --*******************
 function _init()
  cls()
+ init_parts()
  create_obstacles()
- create_body()
+ create_machine()
  init_bckgrnd()
  init_obst()
 end
@@ -445,11 +467,19 @@ function _update()
   add_obstacle()
  end
  
- if frame_count%6==0 then
+ local jump = is_launching
+  or is_jumping
+  or is_landing 
+ 
+ if jump then
+  update_jump()
+ end
+ 
+ if frame_count%6==0 and not jump then
   update_machine()
  end
  
- if frame_count%10==0 then
+ if frame_count%10==0 and not jump then
   update_legs()
  end
  
