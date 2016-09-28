@@ -2,21 +2,13 @@ pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
 --*******************
-machinespr={8,{2,2}}
-bodyspr={5,{2,3}}
-frarmspr={7,{1,1}}
-handspr={23,{1,1}}
 legspr={10,{1,3}}
 forwardlegspr={13,{2,2}}
 backwardlegspr={11,{2,3}}
 
---obstacles
---[[stone_pers={67,{2,2}}
-hound={64,{3,2}}
-nothing={0,{1,1}}]]
-
 xmac=20
 ymac=100
+body={}
 
 bck_len=20
 
@@ -100,6 +92,10 @@ function real_obst:move(x)
  self.x-=x
 end
 
+function real_obst:movev(y)
+ self.y+=y
+end
+
 function real_obst:draw()
  self.obst:draw(self.x,self.y)
 end
@@ -135,6 +131,61 @@ function create_obstacles()
   0,{1,1},{})
 
  obst_tiles={nothing,lion,stone_pers}
+end
+
+function create_body()
+ local x=xmac
+ local y=ymac
+ 
+ local bodyh=hitbox.create(
+  0,0,8,17)
+ local bodyo=obstacle.create(
+  5,{2,3},{bodyh})
+ local bodypart=real_obst.create(
+  x+1,y-17,bodyo)
+ body.body=bodypart
+
+ local machineh=hitbox.create(
+  0,3,15,13)
+ local machineo=obstacle.create(
+  8,{2,2},{machineh})
+ local armo=obstacle.create(
+  7,{1,1},{})
+ local hando=obstacle.create(
+  23,{1,1},{})
+ local machine=real_obst.create(
+  x-1,y-8,machineo)
+ local arm   =real_obst.create(
+  x,y-8,armo)
+ local hand   =real_obst.create(
+  x+4,y-6,hando)
+ body.mac ={arm,machine,hand}
+ 
+ local legh=hitbox.create(
+  0,0,7,18)
+ lego=obstacle.create(
+  10,{1,3},{legh})
+ local legfor1=hitbox.create(
+  0,0,11,7)
+ local legfor2=hitbox.create(
+  8,8,15,15)
+ forwardlego=obstacle.create(
+  13,{2,2},{legfor1,legfor2})
+ local legbac1=hitbox.create(
+  10,0,15,10)
+ local legbac2=hitbox.create(
+  4,8,8,16)
+ backwardlego=obstacle.create(
+  11,{2,3},{legbac1,legbac2})
+ 
+ local legbck=real_obst.create(
+  x+6,y+1,lego)
+ local legfr=real_obst.create(
+  x+1,y+1,lego)
+ body.backleg=legbck
+ body.frontleg=legfr
+ 
+ 
 end
 
 --*******************
@@ -188,28 +239,6 @@ function bckgrnd_update()
 end
 
 function check_collision()
- --get map cell on machine
- local xc=xmac/8+3
- local yc=(100-ymac)/8+2
- local cells={mget(xc,yc),mget(xc+1,yc),mget(xc+2,yc)}
- 
- is_coll=false
- 
- local function check(cell) 
-  if fget(cell, 0) then
-   is_coll=true
-  end
- end
- 
- foreach(cells,check)
-end
-
-function clear_map()
- for i=0,19 do
-  for j=3,3 do
-   mset(i,j,0)
-  end
- end
 end
 
 --*******************
@@ -223,47 +252,48 @@ function draw_background()
   bckgrnd_update()
  end
  map(3,1, xstart,104, 17,3)
- 
 end
 
-function draw_part(part,xc, yc,bk)
- bk = bk or false
- local s=part[1]
- local xl=part[2][1]
- local yl=part[2][2]
- 
- if bk then
-  pal(9,5)
-  pal(4,5)
- end
- 
- spr(s,xc,yc,xl,yl)
- 
+function draw_machine()
+ --draw back leg
+ pal(9,5)
+ pal(4,5)
+ body.backleg:draw()
  pal()
+
+ --draw body
+ palt(0,false)
+ palt(11,true)
+ body.body:draw()
+ palt(0,true)
+ palt(11,false)
+ 
+ --draw rest
+ foreach(body.mac,
+  function(obj)
+   obj:draw()
+  end)
+ 
+ --draw front leg
+ body.frontleg:draw()
+ 
+ --draw hitboxes
+ local drawhit = false
+ if drawhit then
+  body.body:drawhit()
+  foreach(body.mac,
+   function(obj)
+    obj:drawhit()
+   end)
+  body.backleg:drawhit()
+  body.frontleg:drawhit()
+ end
 end
 
-function draw_body(x,y)
-  palt(0,false)
-  palt(11,true)
-  draw_part(bodyspr,x+1,y-17)
-  palt(0,true)
-  palt(11,false)
-  draw_part(frarmspr,x,y-8)
-  draw_part(machinespr,x-1,y-8)
-  draw_part(handspr,x+4,y-6)
-end
+function update_legs()
+ local index= flr(frame_count/10)%4
 
-function draw_machine(xrel,yrel)
-
- local ybody={yrel-17,yrel-16}
- local yfrarm={yrel-8,yrel-7}
- local yhand={yrel-6,yrel-5}
- local ymachine={yrel-8, yrel-7}
- 
- local index = flr(frame_count/6)%2+1
- local rid= flr(frame_count/10)%4
- 
- if is_launching then
+ --[[if is_launching then
   launch_count=max(launch_count,0)+1
   
   draw_part(legspr,xrel+6,yrel+1,true)
@@ -300,52 +330,55 @@ function draw_machine(xrel,yrel)
   end
 
   return
+ end]]
+
+ if index==0 then
+  body.backleg=real_obst.create(
+   xmac-3,ymac+1,backwardlego)
+  body.frontleg=real_obst.create(
+   xmac+1,ymac+1,forwardlego)
+ elseif index==1 or index==3 then
+  body.backleg=real_obst.create(
+   xmac+6,ymac+1,lego)
+  body.frontleg=real_obst.create(
+   xmac+1,ymac+1,lego)
+ elseif index==2 then
+  body.backleg=real_obst.create(
+   xmac+6,ymac+1,forwardlego)
+  body.frontleg=real_obst.create(
+   xmac-9,ymac+1,backwardlego)
  end
  
- if rid==0 then
-  draw_part(backwardlegspr,xrel-3,yrel+1,true)
- elseif rid==1 or rid==3 then
-  draw_part(legspr,xrel+6,yrel+1,true)
- elseif rid==2 then
-  draw_part(forwardlegspr,xrel+6,yrel+1,true)
- end
+end
+
+function update_machine()
  
- palt(0,false)
- palt(11,true)
- draw_part(bodyspr,xrel+1,ybody[index])
- palt(0,true)
- palt(11,false)
- draw_part(frarmspr,xrel,yfrarm[index])
- draw_part(machinespr,xrel-1,ymachine[index])
- draw_part(handspr,xrel+4,yhand[index])
-
-
- if rid==0 then
-  draw_part(forwardlegspr,xrel+1,yrel+1)
- elseif rid==1 or rid==3 then
-  draw_part(legspr,xrel+1,yrel+1)
- elseif rid==2 then
-  draw_part(backwardlegspr,xrel-9,yrel+1)
+ local index=flr(frame_count/6)%2
+ 
+ if index==0 then
+  body.body:movev(1)
+  foreach(body.mac,
+   function(obj)
+    obj:movev(1)
+   end)
+ else
+  body.body:movev(-1)
+  foreach(body.mac,
+   function(obj)
+    obj:movev(-1)
+   end)
  end
 
 end
 
 function draw_coll()
- local xc=xmac/8+3
- local yc=(100-ymac)/8+2
-
- local xr=xmac-8
- local yr=120-yc*8
-
- local box=hitbox.create(xr,yr,xr+24,yr+8)
- box:draw(0,0)
-
 end
 
 --*******************
 function _init()
  cls()
  create_obstacles()
+ create_body()
  init_bckgrnd()
  init_obst()
 end
@@ -373,7 +406,8 @@ function _draw()
  
  draw_coll()
  draw_background()
- draw_machine(xmac,ymac)
+ draw_machine()
+ 
 end
 
 function _update()
@@ -411,11 +445,19 @@ function _update()
   add_obstacle()
  end
  
- check_collision()
+ if frame_count%6==0 then
+  update_machine()
+ end
+ 
+ if frame_count%10==0 then
+  update_legs()
+ end
+ 
+ --[[check_collision()
  if is_coll then
   end_screen=true
   return
- end
+ end]]
  
  if btnp(2) and not is_jumping and not is_launching then
   is_launching=true
