@@ -37,6 +37,16 @@ function hitbox.create(x1,y1,x2,y2)
  return htbx
 end
 
+function hitbox:translate(x,y)
+ local htbx={}
+ setmetatable(htbx,hitbox)
+ htbx.x1=self.x1+x
+ htbx.x2=self.x2+x
+ htbx.y1=self.y1+y
+ htbx.y2=self.y2+y
+ return htbx
+end
+
 function hitbox:draw(x,y)
  rect(x+self.x1,y+self.y1,
   x+self.x2,y+self.y2,8)
@@ -47,7 +57,7 @@ function hitbox:collide(htbx)
   or self.x1 > htbx.x2
   or self.y2 < htbx.y1
   or self.y1 > htbx.y2
- return not res
+ is_coll=(not res) or is_coll
 end
 
 --******* obstacle mgmt *******
@@ -99,6 +109,24 @@ end
 
 function real_obst:drawhit()
  self.obst:drawhit(self.x,self.y)
+end
+
+function real_obst:collide(obst)
+ foreach(self.obst.hitboxes,
+  function(hita)
+   if is_coll then
+    return
+   end
+   local h1=hita:translate(self.x,self.y)
+   foreach(obst.obst.hitboxes,
+    function(hitb)
+     if is_coll then
+      return
+     end
+     local h2=hitb:translate(obst.x,obst.y)
+     h1:collide(h2)
+    end)
+  end)
 end
 
 --*******************
@@ -251,6 +279,18 @@ end
 
 function check_collision()
  is_coll=false
+ 
+ function check(part)
+  foreach(obstacles,
+   function(ob)
+    part:collide(ob)
+   end)
+ end
+ 
+ check(body.backleg)
+ check(body.body)
+ check(body.frontleg)
+ foreach(body.mac,check) 
 end
 
 --*******************
@@ -413,10 +453,9 @@ function _draw()
  end
  
  if end_screen then
-  cls()
-  print("you exploded! too bad!",20,20,7)
+  print("you exploded! too bad!",18,20,7)
   print("press — or Ž to try again",
-   20,40,7)
+   12,40,7)
   return
  end
 
@@ -439,10 +478,10 @@ function _update()
   if is_coll then
    xmac=20
    ymac=100
+   create_machine()
    is_launching=false
    is_jumping=false
    is_landing=false
-   clear_map()
    obstacles={}
    init_obst()
    bckgrnd={}
