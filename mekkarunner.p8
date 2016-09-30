@@ -150,6 +150,11 @@ function init_parts()
  bodyo=obstacle.create(
   5,{2,3},{bodyh})
   
+ fallingbody=obstacle.create(
+  92,{2,2},{})
+ lyingbody=obstacle.create(
+  75,{4,1},{})
+ 
  --parts
  local machineh=hitbox.create(
   0,3,15,13)
@@ -330,7 +335,7 @@ function draw_machine()
  body.frontleg:draw()
  
  --draw hitboxes
- local drawhit = true
+ local drawhit = false
  if drawhit then
   body.body:drawhit()
   foreach(body.mac,
@@ -432,29 +437,18 @@ function update_jump()
 end
 
 function animate_fall()
-  --fall_cnt+=1
-  
-  --fall_update()
-  rectfill(0,0,127,10,11)
-  print(xmac..";"..ymac,0,0,8)
-  pset(xmac,ymac,8)
-  
-  local ybod=0
-  
-  
-  if ybod > 100 then
-   palt(0,false)
-   palt(11,true)
-   spr(75,50,112,4,1)
-   palt(0,true)
-   palt(11,false)
-   spr(107,66,115)
-   return
-  end
-  
-  if ybod >80 then
-  end
-  
+ 
+ body.mac={}
+ 
+ if ymac > 106 then
+  body.body=real_obst.create(
+   xmac,ymac,lyingbody)
+  return
+ elseif ymac > 90 then
+  body.body=real_obst.create(
+   xmac,ymac,fallingbody)
+  return
+ end
 end
 
 function fall_update()
@@ -497,15 +491,14 @@ function _draw()
   return
  end
  
+ rectfill(0,0,127,127,11)
+ 
  if end_screen then
   print("you exploded! too bad!",18,20,7)
   print("press — or Ž to try again",
    12,40,7)
-  animate_fall()
-  return
  end
 
- rectfill(0,0,127,127,11)
  draw_background()
  draw_machine()
  
@@ -533,6 +526,7 @@ function _update()
    fall_cnt=0
   end
   fall_update()
+  animate_fall()
   if btnp(5) or btnp(4) then
    xmac=20
    ymac=100
