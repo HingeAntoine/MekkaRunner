@@ -210,21 +210,7 @@ function init_bckgrnd()
  layer2.bot={bot1}
  
  layers={}
- local lay1=layer.create(100,
-  {top2,bot2,mid2,mid3})
- local lay2=layer.create(250,
-  {layer1.top[2],layer1.bot[2],
-   layer1.midd[1],layer1.midd[2]})
- local lay3=layer.create(350,
-  {layer1.top[3],layer1.bot[3],
-   layer1.midd[1],layer1.midd[2]})
- layers.first={lay1,lay2,lay3}
- 
- local lay4=layer.create(120,
-  {top1,mid1,bot1})
- local lay5=layer.create(170,
-  {top1,mid1,bot1})
- layers.second={lay4,lay5}
+ add_backgroundtree()
  
 end
 
@@ -430,13 +416,11 @@ function draw_background()
  --drawing background
  foreach(layers.second,
   function(obj)
-   obj:update(1)
    obj:draw()
   end)
  
  foreach(layers.first,
   function(obj)
-   obj:update(2)
    obj:draw()
   end)
  
@@ -446,12 +430,48 @@ function update_background()
  local xstart=flr(frame_count*vxmac)%8*(-1)
  obstacle_update()
  
- x2layer-=vxmac*0.5
- x1layer-=vxmac
+ foreach(layers.second,
+  function(obj)
+   obj:update(0.5*vxmac)
+   if obj.x<-20 then
+    del(layers.second,obj)
+   end
+  end)
+ 
+ foreach(layers.first,
+  function(obj)
+   obj:update(vxmac)
+   if obj.x<-20 then
+    del(layers.first,obj)
+   end
+  end)
+  
+ if #layers.second==0 then
+  add_backgroundtree()
+ end
  
  if xstart==0 then
   bckgrnd_update()
  end
+end
+
+function add_backgroundtree()
+  local lay1=layer.create(150,
+  {layer1.top[1],layer1.bot[1],
+   layer1.midd[1],layer1.midd[2]})
+ local lay2=layer.create(250,
+  {layer1.top[2],layer1.bot[2],
+   layer1.midd[1],layer1.midd[2]})
+ local lay3=layer.create(350,
+  {layer1.top[3],layer1.bot[3],
+   layer1.midd[1],layer1.midd[2]})
+ layers.first={lay1,lay2,lay3}
+ 
+ local lay4=layer.create(150,
+  {layer2.top[1],layer2.midd[1],layer2.bot[1]})
+ local lay5=layer.create(200,
+  {layer2.top[1],layer2.midd[1],layer2.bot[1]})
+ layers.second={lay4,lay5}
 end
 
 function draw_machine()
