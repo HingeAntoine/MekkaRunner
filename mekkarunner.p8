@@ -131,11 +131,101 @@ function real_obst:collide(obst)
   end)
 end
 
+--****** layerpart mgmt ******
+layerpart={}
+layerpart.__index=layerpart
+
+function layerpart.create(sprite,y,size)
+ local obj={}
+ setmetatable(obj,layerpart)
+ obj.sprite=sprite
+ obj.y=y
+ obj.size=size
+ return obj
+end
+
+function layerpart:drawpart(x)
+ spr(self.sprite,
+  x,self.y,
+  self.size[1],self.size[2])
+end
+
+--********* layer mgmt ********
+layer={}
+layer.__index=layer
+
+function layer.create(x,layerparts)
+ local obj={}
+ setmetatable(obj,layer)
+ obj.parts=layerparts
+ obj.x=x
+ return obj
+end
+
+function layer:draw()
+ foreach(self.parts,
+  function(obj)
+   obj:drawpart(self.x)
+  end)
+end
+
+function layer:update(x)
+ self.x-=x
+end
+
+
 --*******************
 function init_bckgrnd()
  while #bckgrnd<bck_len do
   add_cell_bckgrnd()
  end
+ 
+ local size={2,2}
+ 
+ --second layer
+ local top1=layerpart.create(198,72,size)
+ local bot1=layerpart.create(230,104,size)
+ local mid1=layerpart.create(234,88,size)
+ 
+ --first layer
+ bot2=layerpart.create(192,56,size)
+ local bot3=layerpart.create(194,56,size)
+ local bot4=layerpart.create(196,56,size)
+ 
+ top2=layerpart.create(224,104,size)
+ local top3=layerpart.create(226,104,size)
+ local top4=layerpart.create(228,104,size)
+ 
+ mid2=layerpart.create(202,72,size)
+ mid3=layerpart.create(202,88,size)
+
+ layer1={}
+ layer1.top={top2,top3,top4}
+ layer1.bot={bot2,bot3,bot4}
+ layer1.midd={mid2,mid3}
+ 
+ layer2={}
+ layer2.top={top1}
+ layer2.midd={mid1}
+ layer2.bot={bot1}
+ 
+ layers={}
+ local lay1=layer.create(100,
+  {top2,bot2,mid2,mid3})
+ local lay2=layer.create(250,
+  {layer1.top[2],layer1.bot[2],
+   layer1.midd[1],layer1.midd[2]})
+ local lay3=layer.create(350,
+  {layer1.top[3],layer1.bot[3],
+   layer1.midd[1],layer1.midd[2]})
+ layers.first={lay1,lay2,lay3}
+ 
+ local lay4=layer.create(120,
+  {top1,mid1,bot1})
+ local lay5=layer.create(170,
+  {top1,mid1,bot1})
+ layers.second={lay4,lay5}
+ 
 end
 
 function init_obst()
@@ -336,23 +426,20 @@ function draw_background()
  --drawing floor
  local xstart=flr(frame_count*vxmac)%8*(-1)
  map(3,1, xstart,104, 17,3)
+
+ --drawing background
+ foreach(layers.second,
+  function(obj)
+   obj:update(1)
+   obj:draw()
+  end)
  
- --drawing 2nd layer
- spr(198,x2layer,72,2,2)
- spr(230,x2layer,104,2,2)
- spr(234,x2layer,88,2,2)
+ foreach(layers.first,
+  function(obj)
+   obj:update(2)
+   obj:draw()
+  end)
  
- spr(198,x2layer+32,72,2,2)
- spr(230,x2layer+32,104,2,2)
- spr(234,x2layer+32,88,2,2)
- 
- --drawing 1rst layer
- spr(192,x1layer,56,4,2)
- spr(224,x1layer,104,4,2)
- spr(202,x1layer,72,2,2)
- spr(202,x1layer,88,2,2)
- spr(202,x1layer+16,72,2,2)
- spr(202,x1layer+16,88,2,2)
 end
 
 function update_background()
