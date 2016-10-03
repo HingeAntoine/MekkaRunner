@@ -22,8 +22,8 @@ init_screen=true
 end_screen=false
 is_coll=false
 
---one_frame=1/30
 frame_count=0
+launch_thresh=3
 
 --******** hitbox mgmt ********
 hitbox={}
@@ -291,7 +291,7 @@ function init_game()
  x2layer=120
 end
 
-function create_obstacles()
+function init_obstacles()
  local lionhit=hitbox.create(0,4,23,15)
  local lion=obstacle.create(
   64,{3,2},{lionhit})
@@ -307,7 +307,6 @@ function create_obstacles()
 end
 
 function create_body(x,y) 
-
  local bodypart=real_obst.create(
   x+1,y-17,bodyo)
  body.body=bodypart
@@ -562,13 +561,19 @@ function update_jump()
  if is_launching then
   launch_count=max(launch_count,0)+1
   
+  if btn(2) then
+   vymac -= 0.1
+   launch_thresh=min(launch_thresh+1,10)
+  end
+  
   if launch_count==1 then
    jump_config()
-  elseif launch_count>4 then
+  elseif launch_count>launch_thresh then
    is_launching=false
    is_jumping=true
    landing_count=0
    launch_count=0
+   launch_thresh=4
   end
   
   return
@@ -663,7 +668,7 @@ end
 function _init()
  cls()
  init_parts()
- create_obstacles()
+ init_obstacles()
  create_machine()
  init_bckgrnd()
  init_obst()
@@ -688,7 +693,6 @@ function _draw()
  draw_background()
  obstacle_draw()
  draw_machine()
- 
 end
 
 function _update()
@@ -725,11 +729,11 @@ function _update()
   update_jump()
  end
  
- if frame_count%6==0 and not jump then
+ if frame_count%(3*vxmac)==0 and not jump then
   update_machine()
  end
  
- if frame_count%10==0 and not jump then
+ if frame_count%(5*vxmac)==0 and not jump then
   update_legs()
  end
  
