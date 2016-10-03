@@ -210,6 +210,9 @@ function init_game()
  is_jumping=false
  is_landing=false
  is_coll=false
+ 
+ x1layer=120
+ x2layer=120
 end
 
 function create_obstacles()
@@ -326,28 +329,38 @@ function check_collision()
 end
 
 --*******************
+x1layer=120
+x2layer=120
+
 function draw_background()
  --drawing floor
  local xstart=flr(frame_count*vxmac)%8*(-1)
  map(3,1, xstart,104, 17,3)
  
  --drawing 2nd layer
- spr(198,3,72,2,2)
- spr(230,3,104,2,2)
- spr(234,3,88,2,2)
+ spr(198,x2layer,72,2,2)
+ spr(230,x2layer,104,2,2)
+ spr(234,x2layer,88,2,2)
+ 
+ spr(198,x2layer+32,72,2,2)
+ spr(230,x2layer+32,104,2,2)
+ spr(234,x2layer+32,88,2,2)
  
  --drawing 1rst layer
- spr(192,0,56,4,2)
- spr(224,0,104,4,2)
- spr(202,0,72,2,2)
- spr(202,0,88,2,2)
- spr(202,16,72,2,2)
- spr(202,16,88,2,2)
+ spr(192,x1layer,56,4,2)
+ spr(224,x1layer,104,4,2)
+ spr(202,x1layer,72,2,2)
+ spr(202,x1layer,88,2,2)
+ spr(202,x1layer+16,72,2,2)
+ spr(202,x1layer+16,88,2,2)
 end
 
 function update_background()
  local xstart=flr(frame_count*vxmac)%8*(-1)
  obstacle_update()
+ 
+ x2layer-=vxmac*0.5
+ x1layer-=vxmac
  
  if xstart==0 then
   bckgrnd_update()
@@ -556,7 +569,8 @@ function _draw()
   return
  end
  
- rectfill(0,0,127,127,1)
+ rectfill(0,56,127,127,1)
+ rectfill(0,0,127,55,3)
  
  if end_screen then
   print("you exploded! too bad!",18,20,7)
