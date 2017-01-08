@@ -17,6 +17,9 @@ obstacles={}
 vxmac=2
 vymac=0
 
+bubble = 0.0
+
+init_jump=true
 is_jumping=false
 init_screen=true
 end_screen=false
@@ -814,6 +817,59 @@ function fall_update()
  end
 end
 
+function sadperko_draw()
+  --draing perko
+  circfill(127,127,29,8)
+  circfill(127,127,26,9)
+  
+  palt(0,false)
+  palt(11,true)
+  spr(10,109,110,1,2)
+  spr(3,114,114,2,2)
+  palt(0,true)
+  palt(11,false)
+end
+
+function perko_draw()
+  --draing perko
+  circfill(127,127,29,8)
+  circfill(127,127,26,9)
+  
+  palt(0,false)
+  palt(11,true)
+  spr(10,109,110,1,2)
+  spr(3,114,114,2,2)
+  palt(0,true)
+  palt(11,false)
+
+  --draw bubble
+  bubble = (frame_count/120)%2
+  
+  rectfill(55,105,105,115,7)
+  spr(15,102,112)
+  circfill(55,110,5,7)
+  circfill(105,110,5,7)
+  if bubble < 1 then
+   print("” to jump",59,108,0)
+  else
+   print("ƒ to slide",59,108,0)
+		end
+end
+
+function perko_update()
+  if 0.2 < bubble and bubble < 1 and init_jump then
+    init_jump = false
+    is_launching = true
+    vymac = -4.3
+  elseif 1.3 < bubble and bubble < 1.7 then
+    init_jump = true
+    is_sliding = true
+  else
+    --is_launching = false
+    is_sliding   = false
+	end
+end
+
 --*******************
 function _init()
  cls()
@@ -825,112 +881,105 @@ function _init()
 end
 
 function _draw() 
- rectfill(0,0,127,127,1)
+  rectfill(0,0,127,127,1)
  
- draw_moon()
+  draw_moon()
 
- draw_background()
- obstacle_draw()
- draw_machine()
- obstaclefr_draw()
+  --draw different layers
+  draw_background()
+  obstacle_draw()
+  draw_machine()
+  obstaclefr_draw()
  
- if init_screen then
-  --drawing title
-  sspr(12*8,12*8,32,32,34,2,64,64)
-  print("press — or Ž to start",
-    20,67,7)
-  circfill(127,127,29,8)
-  circfill(127,127,26,9)
+  if init_screen then
+    --drawing title
+    sspr(12*8,12*8,32,32,34,2,64,64)
+    print("press — or Ž to start",20,67,7)
   
-  --drawing perko
-  palt(0,false)
-  palt(11,true)
-  spr(10,109,110,1,2)
-  spr(3,114,114,2,2)
-  palt(0,true)
-  palt(11,false)
-  return
- end
+    perko_draw()
+    return
+  end
  
- if end_screen then
-  print("you exploded! too bad!",18,20,7)
-  print("press — or Ž to try again",
-   12,40,7)
- end
+  if end_screen then
+    sspr(12*8,12*8,32,32,34,2,64,64)
+    --print("you exploded! too bad!",18,20,7)
+    print("press — or Ž to try again",12,67,7)
+
+    sadperko_draw()
+  end
 end
 
 function _update()
-
- if end_screen then
-  fall_update()
-  animate_fall()
-  if btnp(5) or btnp(4) then
-   init_game()
-   end_screen=false
+  if end_screen then
+    fall_update()
+    animate_fall()
+    if btnp(5) or btnp(4) then
+      init_game()
+      end_screen = false
+    end
+    return
   end
-  return
- end
  
- frame_count+=1
- sprite_count+=1
- update_background()
+  frame_count+=1
+  sprite_count+=1
+  update_background()
  
- local jump = is_launching
-  or is_jumping
-  or is_landing
+  local jump = is_launching
+    or is_jumping
+    or is_landing
   
- local slide = is_sliding 
+  local slide = is_sliding
  
- if jump then
-  update_mac_jump()
- elseif slide then
-  update_mac_slide()
- else
-  update_machine()
- end
- 
- if init_screen then
-  if btnp(5) or btnp(4) then
-   init_screen=false
+  if jump then
+    update_mac_jump()
+  elseif slide then
+    update_mac_slide()
+  else
+    update_machine()
   end
-  return
- end
  
- if #obstacles==0 then
-  new_obstacles()
- end
- 
- check_collision()
- if is_coll then
-  end_screen=true
-  vxfall=4.2
-  vymac=-1.3
-  return
- end
+  if is_jumping then
+    jump_update()
+  end
 
- local not_jump = not is_jumping and not is_launching
+  if init_screen then
+    perko_update()
+    if btnp(5) or btnp(4) then
+      init_screen=false
+    end
+    return
+  end
  
- if btnp(2) and not_jump then
-  is_launching=true
-  vymac=-4.3
- elseif btn(3) and not_jump then
-  is_sliding = true
- end
+  if #obstacles==0 then
+    new_obstacles()
+  end
  
- if is_jumping then
-  jump_update()
- end
+  check_collision()
+  if is_coll then
+    end_screen=true
+    vxfall=4.2
+    vymac=-1.3
+    return
+  end
 
+  local not_jump = not is_jumping and not is_launching
+ 
+  if btnp(2) and not_jump then
+    is_launching=true
+    vymac=-4.3
+  elseif btn(3) and not_jump then
+    is_sliding = true
+  end
 end
 __gfx__
-00000000bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0b0b0b0bbbbbbbbb000000000000000000000000bbb5555b0000000000044440044440000000000088888888
-00000000bbbbbbbbbbbbb555bbbb5555555bbbbb0000000bbbbbbbbb000000000000000000000000bbb5555b0000000000444444444444000000000088888888
-00700700556555bb55565555bbb550550555bbbbb000000bbbbbbbbb004440000000000000000000bbb5555b0000000000449944449944440000000088888888
-000770005655556555565555bbb550550555bbbb0000000bbbbbbbbb0044f0000990000000000000bbbb55bb0000000000449944449944444400000088888888
-00077000bbbb555655bbb555bbb5555555555bbb00fffffbbbbbbbbb004440009990000050000000bbbb66bb0000000000444444444444444440000088888888
-00700700bbbbbbbbbbbbb5bbbbb5505550555bbbbff0f0fbbbbbbbbb000000009990000050000000bbbb55bb0000000000444440044444444444000088888888
-00000000bbbbbbbbbbbbbbbbbbb5550005555bbbbff0f0fbbbbbbbbb000000009990000050000000bbb555bb0000000000044440000000444444000088888888
-00000000bbbbbbbbbbbbbbbbbbb5555555dddbbbbbfffffbbbbbbbbb000000009999990050000000bbb555bb0000000000444400000000004444000088888888
+00000000bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0b0b0b0bbbbbbbbb000000000000000000000000bbb5555b0000000000044440044440000000000000000000
+00000000bbbbbbbbbbbbb555bbbb5555555bbbbb0000000bbbbbbbbb000000000000000000000000bbb5555b0000000000444444444444000000000000000000
+00700700556555bb55565555bbb550550555bbbbb000000bbbbbbbbb004440000000000000000000bbb5555b0000000000449944449944440000000000000000
+000770005655556555565555bbb550550555bbbb0000000bbbbbbbbb0044f0000990000000000000bbbb55bb0000000000449944449944444400000077777700
+00077000bbbb555655bbb555bbb5555555555bbb00fffffbbbbbbbbb004440009990000050000000bbbb66bb0000000000444444444444444440000007777000
+00700700bbbbbbbbbbbbb5bbbbb5505550555bbbbff0f0fbbbbbbbbb000000009990000050000000bbbb55bb0000000000444440044444444444000000077700
+00000000bbbbbbbbbbbbbbbbbbb5550005555bbbbff0f0fbbbbbbbbb000000009990000050000000bbb555bb0000000000044440000000444444000000007777
+00000000bbbbbbbbbbbbbbbbbbb5555555dddbbbbbfffffbbbbbbbbb000000009999990050000000bbb555bb0000000000444400000000004444000000000000
 bbbbbbbbbbbbbbbbbbbbbbbbbbb6666666777dbbbbbffbbbbbbbbbbb044440009999999888000000bbb65bbb0000400004444400000000000444000088888888
 bbbbbbbbbbbbbbbb0b0b0b0bbbb67777777777dbb7777bbbbbbbbbbb444444009999999999900000bbb56bbb0000444444444400000000000444000088888888
 bbbbbbbbbbbbbbbb0000000bbb677777777774db777777bbbbbbbbbb449944009999aa9999a00009bbb555bb0000444444444000000000000444000088888888
